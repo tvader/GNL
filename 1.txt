@@ -1,0 +1,6 @@
+First line
+Second line
+
+Line after empty line
+
+line before empty line before EOF

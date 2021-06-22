@@ -6,7 +6,7 @@
 /*   By: tvader <tvader@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/19 11:06:01 by tvader            #+#    #+#             */
-/*   Updated: 2021/06/21 23:20:54 by tvader           ###   ########.fr       */
+/*   Updated: 2021/06/22 04:17:15 by tvader           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,5 +36,5 @@ size_t	ft_max(size_t s1, size_t s2);
 int		isline(char *buf);
 int		is_ended(t_fds *current_fd);
 void	expand(t_fds	*cur);
-void	freedom(t_fds **list, int fd);
+void	freedom(t_fds ***list, int fd);
 #endif

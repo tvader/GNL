@@ -6,7 +6,7 @@
 /*   By: tvader <tvader@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/19 11:05:24 by tvader            #+#    #+#             */
-/*   Updated: 2021/06/21 23:42:33 by tvader           ###   ########.fr       */
+/*   Updated: 2021/06/22 04:46:11 by tvader           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,32 +40,41 @@ t_fds	*fd_in_list(t_fds **list, int fd)
 	return (new);
 }
 
-void	readline(t_fds *cur)
+int	readline(t_fds *cur)
 {
 	int		cread;
 
 	cread = 1;
+	if (!cur)
+		return (-1);
 	while (!isline(cur->buf) && cread)
 	{
 		while (ft_strlen(cur->buf) + BUFFER_SIZE + 1 > cur->size)
 			expand(cur);
+		if (!cur)
+			return (-1);
 		cread = read(cur->fd, cur->buf + ft_strlen(cur->buf), BUFFER_SIZE);
 	}
 	if (!cread && !isline(cur->buf))
 		cur->is_eof = 1;
+	return (0);
 }
 
-void	createline(t_fds *current_fd, char **line)
+int	createline(t_fds *current_fd, char **line)
 {
 	int		linelen;
 	int		cnt;
 	size_t	blen;
 
+	if (!current_fd)
+		return (-1);
 	blen = ft_strlen(current_fd->buf);
 	linelen = 0;
 	while ((current_fd->buf)[linelen] && (current_fd->buf)[linelen] != 10)
 		linelen++;
 	*line = (char *)ft_calloc(linelen + 1, sizeof(char));
+	if (!(*line))
+		return (-1);
 	cnt = 0;
 	ft_strlcat(*line, current_fd->buf, linelen + 1);
 	while ((size_t)cnt < blen)
@@ -76,14 +85,17 @@ void	createline(t_fds *current_fd, char **line)
 			(current_fd->buf)[cnt] = 0;
 		cnt++;
 	}
+	return (0);
 }
 
-void	freedom(t_fds **list, int fd)
+void	freedom(t_fds ***list, int fd)
 {
 	t_fds	*victim;
 	t_fds	*prev;
 
-	victim = *list;
+	if (!(*list))
+		return ;
+	victim = **list;
 	prev = NULL;
 	while (victim->fd != fd)
 	{
@@ -93,12 +105,16 @@ void	freedom(t_fds **list, int fd)
 	if (prev)
 		prev->next = victim->next;
 	else if (!prev && victim->next)
-		*list = victim->next;
+		**list = victim->next;
 	else
-		*list = NULL;
+		**list = NULL;
 	free(victim->buf);
 	free(victim);
-	victim = NULL;
+	if (!(**list))
+	{
+		free(*list);
+		*list = NULL;
+	}
 }
 
 int	get_next_line(int fd, char **line)
@@ -106,23 +122,21 @@ int	get_next_line(int fd, char **line)
 	static t_fds	**s_beg_list;
 	t_fds			*current_fd;
 
-	if (BUFFER_SIZE == 0 || fd < 0 || read(fd, NULL, 0) < 0 || !line)
+	if (BUFFER_SIZE <= 0 || fd < 0 || read(fd, NULL, 0) < 0 || !line)
 		return (-1);
 	if (!s_beg_list)
 		s_beg_list = ft_calloc(1, sizeof(t_fds **));
 	if (!s_beg_list)
 		return (-1);
 	current_fd = fd_in_list(s_beg_list, fd);
-	readline(current_fd);
-	createline(current_fd, line);
+	if (readline(current_fd) || createline(current_fd, line))
+	{
+		freedom(&s_beg_list, fd);
+		return (-1);
+	}
 	if (!(current_fd->is_eof))
 		return (1);
 	else if (s_beg_list)
-		freedom(s_beg_list, fd);
-	if (!(*s_beg_list))
-	{
-		free(s_beg_list);
-		s_beg_list = NULL;
-	}
+		freedom(&s_beg_list, fd);
 	return (0);
 }

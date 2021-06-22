@@ -6,7 +6,7 @@
 /*   By: tvader <tvader@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/06/14 14:08:43 by tvader            #+#    #+#             */
-/*   Updated: 2021/06/21 23:13:06 by tvader           ###   ########.fr       */
+/*   Updated: 2021/06/22 04:50:31 by tvader           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -102,10 +102,9 @@ int	get_next_line(int fd, char **line)
 	static short	s_fd;
 	size_t			tblen;
 
-	printf("BS = %d\n", BUFFER_SIZE);
 	if (BUFFER_SIZE <= 0 || fd < 0 || read(fd, NULL, 0) < 0 || !line)
 		return (-1);
-	printf("1\n");
+	cread = 0;
 	tblen = ft_max(BUFFER_SIZE, TB_SIZE) + 1;
 	t_buf = (char *)ft_calloc(sizeof(char), tblen);
 	if (oldbuf(fd, &s_fd, &t_buf, &s_buf) < 0)
@@ -117,9 +116,8 @@ int	get_next_line(int fd, char **line)
 		if (!t_buf)
 			return (-1);
 		cread = read(fd, t_buf + ft_strlen(t_buf), BUFFER_SIZE);
-		if (cread <= 0)
+		if (!cread)
 			break ;
 	}
-	printf("4\n");
 	return (endpart(&t_buf, &s_buf, line, cread));
 }
